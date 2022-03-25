@@ -8,8 +8,8 @@
 #include "./mm.h"
 #include "./mminline.h"
 
-block_t *prol;
-block_t *epil;
+// block_t *prol;
+// block_t *epil;
 
 // rounds up to the nearest multiple of WORD_SIZE
 static inline size_t align(size_t size) {
@@ -30,12 +30,12 @@ static inline size_t align(size_t size) {
  *         -1, if an error occurs
  */
 int mm_init(void) {
-  if ((prol = (block_t *)mem_sbrk((int)TAGS_SIZE)) == -1) {
+  if ((prol = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
     return -1;
   }
   block_set_size_and_allocated(prol, TAGS_SIZE, 1);
 
-  if ((epil = (block_t *)mem_sbrk((int)TAGS_SIZE)) == -1) {
+  if ((epil = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
     return -1;
   }
   block_set_size_and_allocated(epil, TAGS_SIZE, 1);
@@ -115,7 +115,7 @@ void *mm_malloc(size_t size) {
   if (!block_prev_allocated(epil)) {
     pull_free_block(block_prev(epil));
     new_b = block_prev(epil);
-    if (mem_sbrk((int)size - (int)block_prev_size(epil)) == -1) {
+    if (mem_sbrk((int)size - (int)block_prev_size(epil)) == (void *)-1) {
       return NULL;
     }
     block_set_size_and_allocated(new_b, size, 1);
@@ -125,7 +125,7 @@ void *mm_malloc(size_t size) {
   }
 
   new_b = epil;
-  if (mem_sbrk((int)size) == -1) {
+  if (mem_sbrk((int)size) == (void *)-1) {
     return NULL;
   }
   block_set_size_and_allocated(new_b, size, 1);

@@ -8,8 +8,8 @@
 #include "./mm.h"
 #include "./mminline.h"
 
-// block_t *prol;
-// block_t *epil;
+block_t *prol;
+block_t *epil;
 
 // rounds up to the nearest multiple of WORD_SIZE
 static inline size_t align(size_t size) {

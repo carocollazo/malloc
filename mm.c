@@ -8,8 +8,8 @@
 #include "./mm.h"
 #include "./mminline.h"
 
-block_t *prol;
-block_t *epil;
+block_t *prologue;
+block_t *epilogue;
 
 // rounds up to the nearest multiple of WORD_SIZE
 static inline size_t align(size_t size) {
@@ -30,15 +30,15 @@ static inline size_t align(size_t size) {
  *         -1, if an error occurs
  */
 int mm_init(void) {
-  if ((prol = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
+  if ((prologue = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
     return -1;
   }
-  block_set_size_and_allocated(prol, TAGS_SIZE, 1);
+  block_set_size_and_allocated(prologue, TAGS_SIZE, 1);
 
-  if ((epil = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
+  if ((epilogue = (block_t *)mem_sbrk((int)TAGS_SIZE)) == (block_t *)-1) {
     return -1;
   }
-  block_set_size_and_allocated(epil, TAGS_SIZE, 1);
+  block_set_size_and_allocated(epilogue, TAGS_SIZE, 1);
   
   flist_first = NULL; 
   return 0; 
@@ -61,24 +61,27 @@ void *mm_malloc(size_t size) {
   }
   
   block_t *new_b;
-  block_t *free_b = flist_first;
-  size_t free_size = block_size(flist_first);
+  size_t free_size;
+  block_t *free_b;
 
   size = align(size) + TAGS_SIZE;
 
   if (flist_first == NULL) {
-    new_b = epil;
+    new_b = epilogue;
     if (mem_sbrk(size) == (void *)-1) {
       return NULL;
     }
     block_set_size_and_allocated(new_b, size, 1);
-    epil = block_next(new_b);
-    block_set_size_and_allocated(epil, TAGS_SIZE, 1);
+    epilogue = block_next(new_b);
+    block_set_size_and_allocated(epilogue, TAGS_SIZE, 1);
     return new_b->payload;
   }
+  free_size = block_size(flist_first);
+  free_b = flist_first;
 
   if (free_size >= size) {
     pull_free_block(flist_first);
+    printf("AQUI");
     if (free_size >= size + MINBLOCKSIZE) {
         block_set_size_and_allocated(free_b, size, 1);
         new_b = block_next(free_b);
@@ -86,51 +89,56 @@ void *mm_malloc(size_t size) {
         insert_free_block(new_b);
         return free_b->payload;
     }
-      block_set_size_and_allocated(free_b, size, 1);
-      return free_b->payload;
+    block_set_size_and_allocated(free_b, free_size, 1);
+    return free_b->payload;
   }
 
   free_b = block_flink(free_b);
-
   while (free_b != flist_first)
   {
     free_size = block_size(free_b);
     if (free_size >= size) {
+      printf("hey");
       pull_free_block(free_b);
       free_size = block_size(free_b);
       if (free_size >= size) {
+        printf("lol");
         pull_free_block(free_b);
         if (free_size >= size + MINBLOCKSIZE) {
+          printf("ugh");
           block_set_size_and_allocated(free_b, size, 1);
           new_b = block_next(free_b);
           block_set_size_and_allocated(new_b,(free_size - size), 0);
           insert_free_block(new_b);
           return free_b->payload;
         }
+        block_set_size_and_allocated(free_b, free_size, 1);
+        return free_b->payload;
       }
       free_b = block_flink(free_b);
     }
   }
-
-  if (!block_prev_allocated(epil)) {
-    pull_free_block(block_prev(epil));
-    new_b = block_prev(epil);
-    if (mem_sbrk((int)size - (int)block_prev_size(epil)) == (void *)-1) {
+  // printf("4\n");
+  if (!block_prev_allocated(epilogue)) {
+    pull_free_block(block_prev(epilogue));
+    new_b = block_prev(epilogue);
+    if (mem_sbrk((int)size - (int)block_prev_size(epilogue)) == (void *)-1) {
       return NULL;
     }
     block_set_size_and_allocated(new_b, size, 1);
-    epil = block_next(new_b);
-    block_set_size_and_allocated(epil, TAGS_SIZE, 1);
+    epilogue = block_next(new_b);
+    block_set_size_and_allocated(epilogue, TAGS_SIZE, 1);
     return new_b->payload;
   }
 
-  new_b = epil;
+  new_b = epilogue;
   if (mem_sbrk((int)size) == (void *)-1) {
     return NULL;
   }
   block_set_size_and_allocated(new_b, size, 1);
-  epil = block_next(new_b);
-  block_set_size_and_allocated(epil, TAGS_SIZE, 1);
+  epilogue = block_next(new_b);
+  block_set_size_and_allocated(epilogue, TAGS_SIZE, 1);
+  // printf("5\n");
   return new_b->payload;
 }
 

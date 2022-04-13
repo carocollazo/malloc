@@ -6,8 +6,8 @@
 // NOTE: to be included only in mm.c
 
 static block_t *flist_first;  // head of circular, doubly linked free list
-extern block_t *prol;
-extern block_t *epil;
+extern block_t *prologue;
+extern block_t *epilogue;
 
 // returns a pointer to the block's end tag (You probably won't need to use this
 // directly)
@@ -118,7 +118,7 @@ static inline block_t *payload_to_block(void *payload) {
 // NOTE: if 'b' is free, b->payload[0] contains b's flink
 static inline block_t *block_flink(block_t *b) {
     assert(!block_allocated(b));
-    return (block_t *)(b->payload[0] + (char *)prol);
+    return (block_t *)(b->payload[0] + (char *)prologue);
 }
 
 // given the inputs 'b' and 'new_flink', sets b's flink to new_flink,
@@ -127,7 +127,7 @@ static inline block_t *block_flink(block_t *b) {
 static inline void block_set_flink(block_t *b, block_t *new_flink) {
     assert(!block_allocated(b) && !block_allocated(new_flink));
     // TODO: implement this function!
-    b->payload[0] = (int)((char *)new_flink - (char *)prol);
+    b->payload[0] = (int)((char *)new_flink - (char *)prologue);
 }
 
 // given the input block 'b', returns b's blink which contains the
@@ -135,7 +135,7 @@ static inline void block_set_flink(block_t *b, block_t *new_flink) {
 // NOTE: if 'b' is free, b->payload[1] contains b's blink
 static inline block_t *block_blink(block_t *b) {
     assert(!block_allocated(b));
-    return (block_t *)(b->payload[1] + (char *)prol);
+    return (block_t *)(b->payload[1] + (char *)prologue);
 }
 
 // given the inputs 'b' and 'new_blink', sets b's blink to new_blink,
@@ -144,7 +144,7 @@ static inline block_t *block_blink(block_t *b) {
 static inline void block_set_blink(block_t *b, block_t *new_blink) {
     assert(!block_allocated(b) && !block_allocated(new_blink));
     // TODO: implement this function!
-    b->payload[1] = (int)((char *)new_blink - (char *)prol); 
+    b->payload[1] = (int)((char *)new_blink - (char *)prologue); 
 }
 
 // pull a block from the (circularly doubly linked) free list

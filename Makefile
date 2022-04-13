@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wunused -O2 -Werror -Wpointer-arith -Wpedantic -g -std=gnu99
+CFLAGS = -Wall -Wextra -Wunused -Werror -Wpointer-arith -Wpedantic -g -std=gnu99
 
 # to add tracefiles, add filenames or other macros separated by commas,
 # e.g. BASE_TRACEFILES,COALESCE_TRACEFILES,my_test_trace.rep

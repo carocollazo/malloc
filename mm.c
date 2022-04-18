@@ -76,36 +76,31 @@ void *mm_malloc(size_t size) {
     block_set_size_and_allocated(epilogue, TAGS_SIZE, 1);
     return new_b->payload;
   }
-  free_size = block_size(flist_first);
+  
   free_b = flist_first;
+  free_size = block_size(flist_first);
 
   if (free_size >= size) {
     pull_free_block(flist_first);
-    printf("AQUI");
     if (free_size >= size + MINBLOCKSIZE) {
         block_set_size_and_allocated(free_b, size, 1);
-        new_b = block_next(free_b);
-        block_set_size_and_allocated(new_b, (free_size - size), 0);
-        insert_free_block(new_b);
+        block_set_size_and_allocated(block_next(free_b), (free_size - size), 0);
+        insert_free_block(block_next(free_b));
         return free_b->payload;
     }
     block_set_size_and_allocated(free_b, free_size, 1);
     return free_b->payload;
   }
-
   free_b = block_flink(free_b);
   while (free_b != flist_first)
   {
     free_size = block_size(free_b);
     if (free_size >= size) {
-      printf("hey");
       pull_free_block(free_b);
       free_size = block_size(free_b);
       if (free_size >= size) {
-        printf("lol");
         pull_free_block(free_b);
         if (free_size >= size + MINBLOCKSIZE) {
-          printf("ugh");
           block_set_size_and_allocated(free_b, size, 1);
           new_b = block_next(free_b);
           block_set_size_and_allocated(new_b,(free_size - size), 0);
@@ -115,10 +110,9 @@ void *mm_malloc(size_t size) {
         block_set_size_and_allocated(free_b, free_size, 1);
         return free_b->payload;
       }
-      free_b = block_flink(free_b);
     }
+    free_b = block_flink(free_b);
   }
-  // printf("4\n");
   if (!block_prev_allocated(epilogue)) {
     pull_free_block(block_prev(epilogue));
     new_b = block_prev(epilogue);
